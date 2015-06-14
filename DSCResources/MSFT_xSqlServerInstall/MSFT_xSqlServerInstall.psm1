@@ -2,6 +2,8 @@
 # xSQLServerInstall: DSC resource to install Sql Server Enterprise version.
 #
 
+# Controls the default version identifier in paramters.
+$DefaultVersionID = "120";
 
 #
 # The Get-TargetResource cmdlet.
@@ -18,9 +20,8 @@ function Get-TargetResource
         [string] $SourcePath,
 
         [PSCredential] $SourcePathCredential,
-		
-		#[ValidateSet("90","100","110","120")]
-        [string]$VersionID="120",
+        
+        [string]$VersionID=$DefaultVersionID,
 
         [string] $Features="SQLEngine,SSMS",
 
@@ -78,10 +79,9 @@ function Set-TargetResource
         [string] $SourcePath,
 
         [PSCredential] $SourcePathCredential,
-		
-		#[ValidateSet("90","100","110","120")]
-        [string]$VersionID="120",
-
+        
+        [string]$VersionID=$DefaultVersionID,
+        
         [string] $Features="SQLEngine,SSMS",
 
         [PSCredential] $SqlAdministratorCredential,
@@ -152,8 +152,8 @@ function Set-TargetResource
     {    
         $cmd += " /AGTSVCACCOUNT=$AgentSvcAccount "
     }
-	
-	if ($SqlCollation)
+    
+    if ($SqlCollation)
     {
         $cmd += " /SQLCOLLATION=$SqlCollation "
     }
@@ -184,8 +184,7 @@ function Set-TargetResource
     }
     
     $cmd += " > $logFile 2>&1 "
-	
-	# if the $SourcePathCredential is supplied we will attempt to map the path
+
     NetUse -SharePath $SourcePath -SharePathCredential $SourcePathCredential -Ensure "Present";
     
     # check that the sourcepath exists
@@ -201,10 +200,8 @@ function Set-TargetResource
 
         $PSCmdlet.ThrowTerminatingError($errorRecord);
     }
-
     try
     {
-		Write-Verbose "Running unattended install";
         Invoke-Expression $cmd
     }
     finally
@@ -216,7 +213,7 @@ function Set-TargetResource
     try
     {        
         # SQL Server log folder
-        $LogPath = Join-Path $env:ProgramFiles "Microsoft SQL Server\$VersionID\Setup Bootstrap\Log"        
+        $LogPath = Join-Path $env:ProgramFiles "Microsoft SQL Server\$VersionID\Setup Bootstrap\Log"
         $sqlLog = Get-Content "$LogPath\summary.txt"
         if($sqlLog -ne $null)
         {
@@ -273,9 +270,9 @@ function Test-TargetResource
         [string] $SourcePath,
 
         [PSCredential] $SourcePathCredential,
+        
+        [string]$VersionID=$DefaultVersionID,
 
-		#[ValidateSet("90","100","110","120")]
-        [string]$VersionID="120",
         [string] $Features="SQLEngine,SSMS",
 
         [PSCredential] $SqlAdministratorCredential,
@@ -334,4 +331,5 @@ function NetUse
 }
 
 Export-ModuleMember -Function *-TargetResource
+
 
